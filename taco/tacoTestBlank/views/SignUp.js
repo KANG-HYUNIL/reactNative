@@ -1,36 +1,52 @@
 import * as React from 'react';
-import { View, Text, StyleSheet, TextInput, Button, Alert, TouchableOpacity } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage'; // AsyncStorage import
-import * as SecureStore from 'expo-secure-store'; 
-import logInStyle from "../styleSheets/styles";
+import { View, Button, TouchableOpacity, Text } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { logInStyle } from "../styleSheets/styles";
 import Icon from 'react-native-vector-icons/Ionicons';
-
+import { useValidation } from '../hooks/useValidation';
+import CustomInput from '../components/CustomInput';
+import { showAlert } from '../utils/alertMessages';
 
 export default function SignUpScreen({ navigation }) {
-  
-    const [userId, setId] = React.useState(''); //사용자 id를 저장하는 변수
-    const [userPw, setPw] = React.useState(''); //사용자 pw를 저장하는 변수
-    const [userPwCheck, setPwCheck] = React.useState(''); //사용자 pw를 저장하는 변수
+    const [userId, setId, idValidationStatus] = useValidation('', 'id');
+    const [userPw, setPw, pwValidationStatus] = useValidation('', 'password');
+    const [userPwCheck, setPwCheck, pwMatchStatus] = useValidation('', 'password');
+    const [userName, setName] = React.useState('');
+    const [userEmail, setEmail, emailValidationStatus] = useValidation('', 'email');
+    const [verificationCode, setVerificationCode] = React.useState('');
+    const [idCheckStatus, setIdCheckStatus] = React.useState(null);
+
 
     const requestSignUp = async () => {
-        const url = ""; //서버 url
+        const url = "";
         const req = {
-            id : userId,
-            pw : userPw
-        } //요청 body
+            id: userId,
+            pw: userPw,
+            name: userName,
+            email: userEmail,
+            verificationCode: verificationCode
+        };
 
-        if (userPw !== userPwCheck) {
-            Alert.alert("Error", "Passwords do not match");
+        if (pwMatchStatus !== "match") {
+            showAlert("Error", "Passwords do not match");
             return;
         }
 
+        if (idCheckStatus !== "available") {
+            showAlert("Error", "Please check the ID duplication");
+            return;
+        }
 
+        if (!userName || !userEmail || !verificationCode) {
+            showAlert("Error", "Name, email, and verification code cannot be empty");
+            return;
+        }
 
         try {
             const response = await fetch(url, {
-                method : "POST",
-                headers : {
-                    "Content-Type" : "application/json",
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
                 },
                 body: JSON.stringify(req)
             });
@@ -38,19 +54,37 @@ export default function SignUpScreen({ navigation }) {
             const jsonData = await response.json();
 
             if (jsonData.result === "success") {
-                await AsyncStorage.setItem('userData', JSON.stringify(req)); // 로그인 성공 시 userData 저장
-                // await SecureStore.setItemAsync("userData", JSON.stringify(req)); // 로그인 성공 시 userData 저장 (모바일용)
-                navigation.navigate('Root')
+                await AsyncStorage.setItem('userData', JSON.stringify(req));
+                navigation.navigate('Root');
             } else {
                 alert("SignUp failed");
             }
-        }
-        catch(err) {
+        } catch (err) {
             alert("SignUp error: " + err);
         }
-    };//requestSignUp
+    };
 
+    const checkIdDuplication = async () => {
+        if (idValidationStatus !== "valid") {
+            showAlert("Error", "ID does not meet the requirements");
+            return;
+        }
 
+        if (userId === "test") {
+            setIdCheckStatus("unavailable");
+        } else {
+            setIdCheckStatus("available");
+        }
+    };
+
+    const sendVerificationCode = async () => {
+        if (emailValidationStatus !== "valid") {
+            showAlert("Error", "Invalid email address");
+            return;
+        }
+
+        showAlert("Success", "Verification code sent");
+    };
 
     return (
         <View style={logInStyle.container}>
@@ -63,32 +97,61 @@ export default function SignUpScreen({ navigation }) {
                 </Text>
             </View>
             <View style={logInStyle.formContainer}>
-                <TextInput 
-                    style={logInStyle.input} 
-                    placeholder="id" 
-                    value={userId}
-                    onChangeText={(text) => setId(text)}
-                />
-                <TextInput 
-                    style={logInStyle.input} 
-                    placeholder="password" 
-                    secureTextEntry={true} 
+                <View style={logInStyle.inputRow}>
+                    <CustomInput
+                        placeholder="id"
+                        value={userId}
+                        onChangeText={(text) => {
+                            setId(text);
+                            setIdCheckStatus(null);
+                        }}
+                        validationStatus={idValidationStatus}
+                        validationMessage={{ valid: "아이디 규칙 준수", invalid: "아이디 규칙 미준수" }}
+                    />
+                    <Button title="Check ID" onPress={checkIdDuplication} />
+                </View>
+                {idCheckStatus === "available" && <Text style={logInStyle.successText}>사용 가능한 아이디</Text>}
+                {idCheckStatus === "unavailable" && <Text style={logInStyle.errorText}>존재하는 아이디</Text>}
+                {idCheckStatus === null && <Text style={logInStyle.warningText}>아이디 중복 검증 필요</Text>}
+                <CustomInput
+                    placeholder="password"
                     value={userPw}
-                    onChangeText={(text) => setPw(text)}
+                    onChangeText={setPw}
+                    validationStatus={pwValidationStatus}
+                    validationMessage={{ valid: "비밀번호 규칙 준수", invalid: "비밀번호 규칙 미준수" }}
                 />
-                <TextInput 
-                    style={logInStyle.input} 
-                    placeholder="password check" 
-                    secureTextEntry={true} 
+                <Text style={logInStyle.infoText}>8자 이상 20자 이하, 영어 소문자, 영어 대문자, 숫자, 특수기호 중 3개 이상 포함</Text>
+                <CustomInput
+                    placeholder="password check"
                     value={userPwCheck}
-                    onChangeText={(text) => setPwCheck(text)}
+                    onChangeText={setPwCheck}
+                    validationStatus={pwMatchStatus}
+                    validationMessage={{ valid: "", invalid: "2차 비밀번호 불일치" }}
+                />
+                <CustomInput
+                    placeholder="name"
+                    value={userName}
+                    onChangeText={setName}
+                />
+                <View style={logInStyle.inputRow}>
+                    <CustomInput
+                        placeholder="email"
+                        value={userEmail}
+                        onChangeText={setEmail}
+                        validationStatus={emailValidationStatus}
+                        validationMessage={{ valid: "", invalid: "이메일 주소 형식 오류" }}
+                    />
+                    <Button title="인증 번호 발송" onPress={sendVerificationCode} />
+                </View>
+                <CustomInput
+                    placeholder="verification code"
+                    value={verificationCode}
+                    onChangeText={setVerificationCode}
                 />
                 <View style={logInStyle.buttonContainer}>
-                    <Button title="Sign Up" onPress={() => requestSignUp()} />
+                    <Button title="Sign Up" onPress={requestSignUp} />
                 </View>
             </View>
-      </View>
-  );
+        </View>
+    );
 }
-
-

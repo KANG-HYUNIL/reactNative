@@ -9,24 +9,30 @@ const logInStyle = StyleSheet.create({
     },
     topBanner: {
       width: wp(100),
-      height: hp(20),
-      flexDirection: 'row', // 추가: 가로 정렬
-      alignItems: 'center', // 추가: 세로 가운데 정렬
+      height: hp(10),
+      flexDirection: 'row',
+      alignItems: 'center',
       paddingLeft: wp(5),
     },
     topBannerText: {
       fontSize: hp(3),
       fontWeight: 'bold',
-      marginLeft: wp(2), // 추가: 아이콘과 텍스트 사이의 간격
+      marginLeft: wp(2),
     },
     input: {
-      width: '100%',
+      width: '70%',
       height: hp(5),
       borderWidth: 1,
       borderColor: 'black',
       borderRadius: 5,
       paddingLeft: wp(2),
       marginTop: hp(2),
+    },
+    inputRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      width: '100%',
     },
     formContainer: {
       width: wp('80%'),
@@ -36,7 +42,56 @@ const logInStyle = StyleSheet.create({
       width: '50%',
       marginTop: hp('2%'),
     },
+    successText: {
+      color: 'green',
+      marginTop: hp(1),
+    },
+    errorText: {
+      color: 'red',
+      marginTop: hp(1),
+    },
+    warningText: {
+      color: 'orange',
+      marginTop: hp(1),
+    },
+    infoText: {
+      color: 'blue',
+      marginTop: hp(1),
+    },
   });
-  
-  export default logInStyle;
 
+const SearchModal = StyleSheet.create({
+    modalContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    },
+    modalView: {
+        width: '80%',
+        backgroundColor: 'white',
+        borderRadius: 10,
+        padding: 20,
+        alignItems: 'center',
+        shadowColor: '#000',
+        shadowOffset: {
+            width: 0,
+            height: 2,
+        },
+        shadowOpacity: 0.25,
+        shadowRadius: 4,
+        elevation: 5,
+    },
+    modalText: {
+        marginBottom: 15,
+        textAlign: 'center',
+        fontSize: 18,
+    },
+    closeButton: {
+        position: 'absolute',
+        top: 10,
+        right: 10,
+    },
+});
+
+export { logInStyle, SearchModal };

@@ -1,5 +1,5 @@
 import { StatusBar } from 'expo-status-bar';
-import { Button, StyleSheet, Text, TextInput, View, BackHandler } from 'react-native';
+import { Button, StyleSheet, Text, TextInput, View, BackHandler, Alert } from 'react-native';
 import {widthPercentageToDP as wp, heightPercentageToDP as hp} from 'react-native-responsive-screen';
 import * as React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
@@ -8,9 +8,9 @@ import AsyncStorage from '@react-native-async-storage/async-storage'; // AsyncSt
 import * as SecureStore from 'expo-secure-store'; //암호화된 데이터 저장을 위한 라이브러리
 import SignUpScreen from "./views/SignUp";
 import RootView from "./views/Root";
-import logInStyle from './styleSheets/styles';
+import IdPwSearchScreen from "./views/IdPwSearch"; // ID/PW Search 뷰 import
+import {logInStyle} from './styleSheets/styles';
 import ErrorBoundary from './ErrorBoundary';
-
 
 //stack navigator 생성
 const Stack = createStackNavigator();
@@ -47,6 +47,21 @@ function HomeScreen({ navigation }) {
   
   //로그인 요청 전달 및 응답 처리 함수
   const requestLogin = async () => {
+
+    // 입력값 검증
+    const specialCharPattern = /[!@#$%^&*(),.?":{}|<>]/g;
+
+    if (!userId.trim() || !userPw.trim()) {
+      alert("ID와 비밀번호를 모두 입력해주세요.");
+      return;
+    }
+
+    if (specialCharPattern.test(userId)) {
+      alert("ID에 특수문자를 포함할 수 없습니다.");
+      return;
+    }
+
+
     const url = "http://localhost:3000/login"; //서버 url
     const req = {
       id : userId,
@@ -80,9 +95,6 @@ function HomeScreen({ navigation }) {
 
   };//requestLogin
 
-
-
-
   //Home 화면의 UI 코드
   return (
     <View style={logInStyle.container}>
@@ -112,13 +124,15 @@ function HomeScreen({ navigation }) {
           <View style={logInStyle.buttonContainer}>
             <Button title="Sign up" onPress={() => navigation.navigate('SignUp')} />
           </View>
+          <View style={logInStyle.buttonContainer}>
+            <Button title="ID/PW Search" onPress={() => navigation.navigate('IdPwSearch')} />
+          </View>
         </View>
       )}
       <StatusBar style="auto" />
     </View>
   );
 }//HomeScreen
-
 
 export default function App() {
 
@@ -204,10 +218,14 @@ export default function App() {
             component={RootView} 
             options={{ headerShown: false }} 
           />
+          <Stack.Screen 
+            name='IdPwSearch' 
+            component={IdPwSearchScreen} 
+            options={{ headerShown: false }} 
+          />
         </Stack.Navigator>
       </NavigationContainer>
     </ErrorBoundary>
   
   );
 }
-
