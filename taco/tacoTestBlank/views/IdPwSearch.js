@@ -17,28 +17,200 @@ export default function IdPwSearchScreen({ navigation }) {
     const [searchResult, setSearchResult] = React.useState('');
     const [newPassword, setNewPassword, pwValidationStatus] = useValidation('', 'password');
     const [newPasswordCheck, setNewPasswordCheck, pwMatchStatus] = useValidation('', 'password');
-    // ID/PW 검색 결과 모달창
-    const handleIdSearch = () => {
-        setSearchResult("Your ID is: exampleID");
-        setIsModalVisible(true);
-    };
+
+    // ID 검색 결과 모달창
+    const handleIdSearch = async () => {
+
+        const url = ""; // 서버 URL
+        const req = {email : email, verificationCode : verificationCode}; // 요청 데이터
+
+        // 서버로 요청 전송
+        try {
+            const response = await fetch(url, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify(req)
+            });
+
+            const jsonData = await response.json(); // 응답 데이터 파싱
+
+            if (jsonData.success) {
+                setSearchResult("Your ID is: " + jsonData.id); // id 검색 결과 저장
+                setIsModalVisible(true); // 모달창 열기
+            } 
+            else if (jsonData.msg){
+                showAlert("Id Search failed: " , jsonData.msg);
+            }
+
+        } catch (err) {
+            showAlert("Id Search error: " , err);
+        }
+
+        // setSearchResult("Your ID is: exampleID");
+        // setIsModalVisible(true); // 모달창 열기
+    }; //handleIdSearch
 
     // 비밀번호 검색 결과 모달창
-    const handlePwSearch = () => {
-        setIsPwResetVisible(true);
-    };
+    const handlePwSearch = async () => {
 
-    // 비밀번호 변경
-    const sendVerificationCode = () => {
+        const url = ""; // 서버 URL
+        const req = {id : userId, email : pwEmail, verificationCode : pwVerificationCode}; // 요청 데이터
+
+        // 서버로 요청 전송
+        try {
+            const response = await fetch(url, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify(req)
+            });
+
+            const jsonData = await response.json(); // 응답 데이터 파싱
+
+            if (jsonData.success) {
+                alert("Move to Pw reset page"); // 비밀번호 변경 페이지로 이동
+                setIsPwResetVisible(true); // 비밀번호 변경 모달창 열기
+            } 
+            else if (jsonData.msg){
+                showAlert("Pw Search failed: " , jsonData.msg);
+            }
+
+        } catch (err) {
+            showAlert("Pw Search error: " , err);
+        }
+
+
+        //setIsPwResetVisible(true); // 비밀번호 변경 모달창 열기
+    }; //handlePwSearch
+
+    //아이디 확인 용 인증번호 요청
+    const sendVerificationCodeId = async () => {
+
+        // 이메일 형식 검증
+        if (emailValidationStatus !== "valid") 
+        {
+            showAlert("Error", "Invalid email address");
+            return;
+        }
+
+        const url = ""; // 서버 URL
+        const req = {email : email}; // 요청 데이터
+
+        // 서버로 요청 전송
+        try {
+            const response = await fetch(url, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify(req)
+            });
+
+            const jsonData = await response.json(); // 응답 데이터 파싱
+
+            if (jsonData.success) {
+                showAlert("Success", "Verification code sent");
+            } 
+            else if (jsonData.msg){
+                showAlert("Verification code sending failed: " , jsonData.msg);
+            }
+
+        } catch (err) {
+            showAlert("Verification code sending error: " , err);
+        }
+
         showAlert("Success", "Verification code sent");
-    };
+    }; //sendVerificationCodeId
+
+    // 비밀번호 확인 용 인증번호 요청
+    const sendVerificationCodePw = async () => {
+
+        // 이메일 형식 검증
+        if (!pwEmailValidationStatus !== "valid") 
+        {
+            showAlert("Error", "Invalid email address");
+            return;
+        }
+
+        const url = ""; // 서버 URL
+        const req = {id : userId, email : email}; // 요청 데이터
+
+        // 서버로 요청 전송
+        try {
+            const response = await fetch(url, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify(req)
+            });
+
+            const jsonData = await response.json(); // 응답 데이터 파싱
+
+            if (jsonData.success) {
+                showAlert("Success", "Verification code sent");
+            } 
+            else if (jsonData.msg){
+                showAlert("Verification code sending failed: " , jsonData.msg);
+            }
+
+        } catch (err) {
+            showAlert("Verification code sending error: " , err);
+        }
+
+    }; //sendVerificationCodePw
 
     // 비밀번호 변경
-    const handlePasswordReset = () => {
-        showAlert("Success", "Password reset successful");
-        setIsPwResetVisible(false);
-    };
+    const handlePasswordReset = async () => {
 
+        // 비밀번호 형식 확인
+        if (pwValidationStatus !== "valid") 
+        {
+            showAlert("Error", "Invalid password");
+            return;
+        }
+
+        // 비밀번호 일치 확인
+        if (pwMatchStatus !== "valid")
+        {
+            showAlert("Error", "Passwords do not match");
+            return;
+        }
+
+        const url = ""; // 서버 URL
+        const req = {newPassword : newPassword, id : userId, email : pwEmail}; // 요청 데이터
+
+        // 서버로 요청 전송
+        try {
+            const response = await fetch(url, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify(req)
+            });
+
+            const jsonData = await response.json(); // 응답 데이터 파싱
+
+            if (jsonData.success) {
+                showAlert("Success", "Password reset successful");
+            } 
+            else if (jsonData.msg){
+                showAlert("Password reset error: " , jsonData.msg);
+            }
+
+        } catch (err) {
+            showAlert("Password reset error: " , err);
+        }
+
+        showAlert("Success", "Password reset successful");
+        setIsPwResetVisible(false); // 비밀번호 변경 모달창 닫기
+    }; //handlePasswordReset
+
+    //뷰 렌더링
     return (
         <View style={logInStyle.container}>
             <View style={logInStyle.topBanner}>
@@ -58,7 +230,7 @@ export default function IdPwSearchScreen({ navigation }) {
                     validationStatus={emailValidationStatus}
                     validationMessage={{ valid: "", invalid: "이메일 주소 형식 오류" }}
                 />
-                <Button title="Send Verification Code" onPress={sendVerificationCode} />
+                <Button title="Send Verification Code" onPress={sendVerificationCodeId} />
                 <CustomInput
                     placeholder="Enter verification code"
                     value={verificationCode}
@@ -82,7 +254,7 @@ export default function IdPwSearchScreen({ navigation }) {
                     validationStatus={pwEmailValidationStatus}
                     validationMessage={{ valid: "", invalid: "이메일 주소 형식 오류" }}
                 />
-                <Button title="Send Verification Code" onPress={sendVerificationCode} />
+                <Button title="Send Verification Code" onPress={sendVerificationCodePw} />
                 <CustomInput
                     placeholder="Enter verification code"
                     value={pwVerificationCode}

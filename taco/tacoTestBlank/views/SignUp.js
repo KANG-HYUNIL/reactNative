@@ -16,9 +16,11 @@ export default function SignUpScreen({ navigation }) {
     const [verificationCode, setVerificationCode] = React.useState('');
     const [idCheckStatus, setIdCheckStatus] = React.useState(null);
 
-
+    // 회원가입 요청
     const requestSignUp = async () => {
-        const url = "";
+
+        const url = ""; // 서버 URL
+
         const req = {
             id: userId,
             pw: userPw,
@@ -27,21 +29,25 @@ export default function SignUpScreen({ navigation }) {
             verificationCode: verificationCode
         };
 
+        //비밀번호 일치 여부 확인
         if (pwMatchStatus !== "match") {
             showAlert("Error", "Passwords do not match");
             return;
         }
 
+        //아이디 중복 확인 여부
         if (idCheckStatus !== "available") {
             showAlert("Error", "Please check the ID duplication");
             return;
         }
 
+        //빈칸 확인
         if (!userName || !userEmail || !verificationCode) {
             showAlert("Error", "Name, email, and verification code cannot be empty");
             return;
         }
 
+        //회원가입 요청 전송
         try {
             const response = await fetch(url, {
                 method: "POST",
@@ -53,7 +59,7 @@ export default function SignUpScreen({ navigation }) {
 
             const jsonData = await response.json();
 
-            if (jsonData.result === "success") {
+            if (jsonData.success) {
                 await AsyncStorage.setItem('userData', JSON.stringify(req));
                 navigation.navigate('Root');
             } else {
@@ -64,28 +70,82 @@ export default function SignUpScreen({ navigation }) {
         }
     };
 
+    //아이디 중복 확인
     const checkIdDuplication = async () => {
+
+        //아이디 형식 확인
         if (idValidationStatus !== "valid") {
             showAlert("Error", "ID does not meet the requirements");
             return;
         }
 
-        if (userId === "test") {
-            setIdCheckStatus("unavailable");
-        } else {
-            setIdCheckStatus("available");
+        const url = ""; // 서버 URL
+        const req = { id: userId }; // 요청 데이터
+
+        //아이디 중복 확인 요청 전송
+        try {
+            const response = await fetch(url, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify(req)
+            });
+
+            const jsonData = await response.json();
+
+            if (jsonData.success) {
+                setIdCheckStatus("available");
+            } else if (jsonData.msg) {
+                showAlert("ID check failed: " , jsonData.msg);
+                setIdCheckStatus("unavailable");
+            }
+
         }
+        catch (err) {
+            showAlert("ID check error: " , err);
+        }
+
     };
 
+    //인증번호 발송
     const sendVerificationCode = async () => {
+
+        //이메일 형식 확인
         if (emailValidationStatus !== "valid") {
             showAlert("Error", "Invalid email address");
             return;
         }
 
-        showAlert("Success", "Verification code sent");
+        const url = ""; // 서버 URL
+        const req = { email: userEmail }; // 요청 데이터
+
+        //인증번호 발송 요청
+        try {
+            const response = await fetch(url, {
+                method : "POST",
+                headers : {
+                    "Content-Type" : "application/json",
+                },
+                body : JSON.stringify(req)
+                });
+
+            const jsonData = await response.json();
+
+            if (jsonData.success) {
+                showAlert("Success", "Verification code sent");
+            } 
+            else if (jsonData.msg){
+                showAlert("Verification code sending failed: " , jsonData.msg);
+            }
+
+        } catch (err) {
+            showAlert("Verification code sending error: " , err);
+        }
+
     };
 
+    //뷰 렌더링
     return (
         <View style={logInStyle.container}>
             <View style={logInStyle.topBanner}>

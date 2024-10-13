@@ -94,4 +94,43 @@ const SearchModal = StyleSheet.create({
     },
 });
 
-export { logInStyle, SearchModal };
+const ScheduleForm = StyleSheet.create({
+  container: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  scheduleContainer: {
+    width: wp(75),
+    height: hp(60),
+    backgroundColor: 'white',
+    borderRadius: 10,
+    padding: 20,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 5,
+  },
+  scheduleItem: {
+    marginBottom: 15,
+  },
+  scheduleTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
+  scheduleTime: {
+    fontSize: 14,
+    color: 'gray',
+  },
+  noScheduleText: {
+    textAlign: 'center',
+    fontSize: 18,
+    color: 'gray',
+  },
+});
+
+export { logInStyle, SearchModal, ScheduleForm };
