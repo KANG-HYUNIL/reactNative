@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, Button, ScrollView, Dimensions } from 'react-na
 import AsyncStorage from '@react-native-async-storage/async-storage'; // AsyncStorage import
 import { PanGestureHandler } from 'react-native-gesture-handler';
 import Animated, { useSharedValue, useAnimatedStyle, withSpring } from 'react-native-reanimated';
-import { logInStyle, SearchModal, ScheduleForm } from '../styleSheets/styles';
+import { logInStyle, SearchModal, ScheduleForm, RootForm } from '../styleSheets/styles';
 
 const { width } = Dimensions.get('window');
 
@@ -125,7 +125,11 @@ export default function RootView({ navigation }) {
           )}
         </Animated.View>
       </PanGestureHandler>
-      <Button title="Logout" onPress={handleLogout} />
+      <View style={RootForm.buttonRow}>
+        <Button title="Edit Schedule" onPress={() => navigation.navigate('EditSchedule')} />
+        <Button title="Middle Button" onPress={() => {}} />
+        <Button title="Logout" onPress={handleLogout} />
+      </View>
     </View>
   );
 }

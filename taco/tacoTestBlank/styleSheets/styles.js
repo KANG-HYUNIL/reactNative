@@ -133,4 +133,41 @@ const ScheduleForm = StyleSheet.create({
   },
 });
 
-export { logInStyle, SearchModal, ScheduleForm };
+
+const RootForm = StyleSheet.create({
+  buttonRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    width: '100%',
+    padding: 10,
+  },
+});
+
+const ScheduleEditForm = StyleSheet.create({
+
+  container: {
+    flex: 1,
+    paddingTop: 50,
+  },
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 10,
+    paddingBottom: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: '#ccc',
+  },
+  headerTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
+  content: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+});
+
+
+export { logInStyle, SearchModal, ScheduleForm, RootForm, ScheduleEditForm };

@@ -9,6 +9,7 @@ import * as SecureStore from 'expo-secure-store'; //암호화된 데이터 저�
 import SignUpScreen from "./views/SignUp";
 import RootView from "./views/Root";
 import IdPwSearchScreen from "./views/IdPwSearch"; // ID/PW Search 뷰 import
+import ScheduleEdit from './views/ScheduleEdit';
 import {logInStyle} from './styleSheets/styles';
 import ErrorBoundary from './ErrorBoundary';
 
@@ -221,6 +222,11 @@ export default function App() {
           <Stack.Screen 
             name='IdPwSearch' 
             component={IdPwSearchScreen} 
+            options={{ headerShown: false }} 
+          />
+          <Stack.Screen 
+            name='EditSchedule' 
+            component={ScheduleEdit} 
             options={{ headerShown: false }} 
           />
         </Stack.Navigator>
