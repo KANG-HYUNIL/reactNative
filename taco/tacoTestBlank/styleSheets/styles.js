@@ -135,11 +135,84 @@ const ScheduleForm = StyleSheet.create({
 
 
 const RootForm = StyleSheet.create({
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    width: '100%',
+    paddingVertical: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: '#ccc',
+  },
+  bottomContainer: {
+    position: 'absolute',
+    bottom: 0,
+    width: '100%',
+    alignItems: 'center',
+    paddingBottom: 10,
+    paddingTop: 20,
+  },
   buttonRow: {
     flexDirection: 'row',
-    justifyContent: 'space-around',
+    justifyContent: 'space-between',
+    width: '80%',
+    marginBottom: 10,
+  },
+  circleButton: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    backgroundColor: 'black',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  middleButtonRow: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    width: '60%',
+  },
+  squareButton: {
+    width: 50,
+    height: 50,
+    backgroundColor: 'black',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginHorizontal: 2,
+  },
+  buttonText: {
+    color: 'white',
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
+  calendarContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'center',
+    alignItems: 'center',
     width: '100%',
-    padding: 10,
+  },
+  calendarCell: {
+    width: '14.28%', // 7 columns
+    minHeight: 70,
+    justifyContent: 'flex-start',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#ccc',
+    padding: 5,
+  },
+  calendarText: {
+    fontSize: 16,
+  },
+  separator: {
+    width: '100%',
+    height: 1,
+    backgroundColor: '#ccc',
+    marginVertical: 5,
+  },
+  scheduleText: {
+    fontSize: 12,
+    textAlign: 'left',
+    width: '100%',
   },
 });
 

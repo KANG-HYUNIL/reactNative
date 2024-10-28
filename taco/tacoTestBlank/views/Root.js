@@ -1,16 +1,49 @@
 import * as React from 'react';
-import { View, Text, StyleSheet, Button, ScrollView, Dimensions } from 'react-native';
+import { View, Text, StyleSheet, Button, ScrollView, Dimensions, TouchableOpacity } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage'; // AsyncStorage import
 import { PanGestureHandler } from 'react-native-gesture-handler';
 import Animated, { useSharedValue, useAnimatedStyle, withSpring } from 'react-native-reanimated';
+import { Ionicons } from '@expo/vector-icons'; // 아이콘 사용을 위한 라이브러리
 import { logInStyle, SearchModal, ScheduleForm, RootForm } from '../styleSheets/styles';
 
 const { width } = Dimensions.get('window');
 
 export default function RootView({ navigation }) {
   const [schedules, setSchedules] = React.useState([]); // 스케줄 데이터
-  const [currentIndex, setCurrentIndex] = React.useState(-1); // 현재 스케줄 인덱스, 기본값 -1
-  const translateX = useSharedValue(0); // 스케줄 슬라이드 애니메이션
+
+  // 오늘 날짜 가져오기
+  const today = new Date();
+  const year = today.getFullYear();
+  const month = today.getMonth();
+
+  // 달력 데이터 생성
+  const generateCalendar = (year, month) => {
+    const firstDayOfMonth = new Date(year, month, 1);
+    const lastDayOfMonth = new Date(year, month + 1, 0);
+    const calendar = [];
+
+    // 첫 번째 주의 빈 칸 채우기
+    for (let i = 0; i < firstDayOfMonth.getDay(); i++) {
+      calendar.push(null);
+    }
+
+    // 해당 월의 날짜 채우기
+    for (let day = 1; day <= lastDayOfMonth.getDate(); day++) {
+      calendar.push(new Date(year, month, day));
+    }
+
+    // 마지막 주의 빈 칸 채우기
+    const remainingDays = 7 - (calendar.length % 7);
+    if (remainingDays < 7) {
+      for (let i = 0; i < remainingDays; i++) {
+        calendar.push(null);
+      }
+    }
+
+    return calendar;
+  };
+
+  const calendarData = generateCalendar(year, month);
 
   // AsyncStorage에서 스케줄 데이터 가져오기
   React.useEffect(() => {
@@ -18,26 +51,10 @@ export default function RootView({ navigation }) {
       try {
         const value = await AsyncStorage.getItem('scheduleData'); // AsyncStorage에서 scheduleData 가져오기
         if (value !== null) {
-          const data = JSON.parse(value); // JSON 파싱
-          
-          // 날짜와 시간 순서대로 스케줄 정렬
-          const sortedData = data.sort((a, b) => {
-            if (a.date === b.date) {
-              return a.time.localeCompare(b.time);
-            }
-            return a.date.localeCompare(b.date);
-          });
-
-          setSchedules(sortedData); // 정렬된 스케줄 데이터 설정
-
-          // 오늘 날짜의 스케줄 찾기
-          const today = new Date().toISOString().split('T')[0];
-          const todayIndex = sortedData.findIndex(schedule => schedule.date === today);
-
-          // 오늘 날짜의 스케줄이 있으면 currentIndex 설정, 없으면 -1 유지
-          if (todayIndex !== -1) {
-            setCurrentIndex(todayIndex);
-          }
+          const data = JSON.parse(value);
+          setSchedules(data);
+        } else {
+          setSchedules([]); // 스케줄 데이터가 없을 경우 빈 배열로 설정
         }
       } catch (error) {
         console.error("Error fetching schedule data: ", error);
@@ -47,49 +64,25 @@ export default function RootView({ navigation }) {
     fetchData();
   }, []); //useEffect
 
-  // 날짜 슬라이드 제스처 처리
-  const handleGesture = (event) => {
-    if (event.nativeEvent.translationX < -50) {
-      // 슬라이드 왼쪽
-      if (currentIndex < schedules.length - 1) {
-        if (currentIndex === -1) {
-          // 오늘 날짜에서 가장 가까운 미래의 스케줄 찾기
-          const futureIndex = schedules.findIndex(schedule => new Date(schedule.date) > new Date());
-          if (futureIndex !== -1) {
-            setCurrentIndex(futureIndex);
-            translateX.value = withSpring(-width * futureIndex);
-          }
-        } else {
-          setCurrentIndex(currentIndex + 1);
-          translateX.value = withSpring(-width * (currentIndex + 1));
-        }
-      }
-    } 
+  // 스케줄 필터링
+  const filterSchedulesForMonth = (schedules, year, month) => {
+    return schedules.filter(schedule => {
+      const startDate = schedule.startDate ? new Date(schedule.startDate) : null;
+      const endDate = schedule.endDate ? new Date(schedule.endDate) : null;
 
-    else if (event.nativeEvent.translationX > 50) {
-      // 슬라이드 오른쪽
-      if (currentIndex > 0) {
-        if (currentIndex === -1) {
-          // 오늘 날짜에서 가장 가까운 과거의 스케줄 찾기
-          const pastIndex = schedules.slice().reverse().findIndex(schedule => new Date(schedule.date) < new Date());
-          if (pastIndex !== -1) {
-            const actualIndex = schedules.length - 1 - pastIndex;
-            setCurrentIndex(actualIndex);
-            translateX.value = withSpring(-width * actualIndex);
-          }
-        } else {
-          setCurrentIndex(currentIndex - 1);
-          translateX.value = withSpring(-width * (currentIndex - 1));
-        }
+      if (startDate && startDate.getFullYear() === year && startDate.getMonth() === month) {
+        return true;
       }
-    }
-  };//handleGesture
 
-  const animatedStyle = useAnimatedStyle(() => {
-    return {
-      transform: [{ translateX: translateX.value }],
-    };
-  });
+      if (endDate && endDate.getFullYear() === year && endDate.getMonth() === month) {
+        return true;
+      }
+
+      return false;
+    });
+  };
+
+  const filteredSchedules = filterSchedulesForMonth(schedules, year, month);
 
   // 로그아웃 처리
   const handleLogout = async () => {
@@ -102,33 +95,89 @@ export default function RootView({ navigation }) {
     }
   }; //handleLogout
 
+  // 달력 렌더링
+  const renderCalendar = (calendarData, filteredSchedules) => {
+    if (!calendarData) {
+      return null; // calendarData가 undefined일 경우 null 반환
+    }
+
+    const scheduleMap = {};
+
+    filteredSchedules.forEach(schedule => {
+      const startDate = schedule.startDate ? new Date(schedule.startDate) : null;
+      const endDate = schedule.endDate ? new Date(schedule.endDate) : null;
+
+      if (startDate) {
+        const key = startDate.toISOString().split('T')[0];
+        if (!scheduleMap[key]) {
+          scheduleMap[key] = [];
+        }
+        scheduleMap[key].push(schedule);
+      } else if (endDate) {
+        const key = endDate.toISOString().split('T')[0];
+        if (!scheduleMap[key]) {
+          scheduleMap[key] = [];
+        }
+        scheduleMap[key].push(schedule);
+      }
+    });
+
+    return (
+      <View style={RootForm.calendarContainer}>
+        {calendarData.map((date, index) => {
+          const key = date ? date.toISOString().split('T')[0] : null;
+          const schedulesForDate = key ? scheduleMap[key] || [] : [];
+
+          return (
+            <View key={index} style={RootForm.calendarCell}>
+              {date && (
+                <>
+                  <Text style={RootForm.calendarText}>{date.getDate()}</Text>
+                  <View style={RootForm.separator} />
+                  {schedulesForDate.map((schedule, idx) => (
+                    <Text key={idx} style={RootForm.scheduleText}>- {schedule.title}</Text>
+                  ))}
+                </>
+              )}
+            </View>
+          );
+        })}
+      </View>
+    );
+  };
+
   // 뷰 렌더링
   return (
     <View style={ScheduleForm.container}>
-      <PanGestureHandler onGestureEvent={handleGesture}>
-        <Animated.View style={[ScheduleForm.scheduleContainer, animatedStyle]}>
-          {schedules.length > 0 ? (
-            currentIndex === -1 ? (
-              <Text style={ScheduleForm.noScheduleText}>오늘은 스케줄이 없음</Text>
-            ) : (
-              <ScrollView>
-                {schedules[currentIndex].map((schedule, index) => (
-                  <View key={index} style={ScheduleForm.scheduleItem}>
-                    <Text style={ScheduleForm.scheduleTitle}>{schedule.title}</Text>
-                    <Text style={ScheduleForm.scheduleTime}>{`${schedule.date} ${schedule.time}`}</Text>
-                  </View>
-                ))}
-              </ScrollView>
-            )
-          ) : (
-            <Text style={ScheduleForm.noScheduleText}>오늘은 스케줄이 없음</Text>
-          )}
-        </Animated.View>
-      </PanGestureHandler>
-      <View style={RootForm.buttonRow}>
-        <Button title="Edit Schedule" onPress={() => navigation.navigate('EditSchedule')} />
-        <Button title="Middle Button" onPress={() => {}} />
-        <Button title="Logout" onPress={handleLogout} />
+      <View style={RootForm.header}>
+        <TouchableOpacity onPress={() => { /* 메뉴 아이콘 클릭 시 동작할 로직 */ }}>
+          <Ionicons name="menu" size={24} color="black" />
+        </TouchableOpacity>
+        <TouchableOpacity onPress={() => { /* 설정 아이콘 클릭 시 동작할 로직 */ }}>
+          <Ionicons name="settings" size={24} color="black" />
+        </TouchableOpacity>
+      </View>
+      {renderCalendar(calendarData, filteredSchedules)}
+      <View style={RootForm.bottomContainer}>
+        <View style={RootForm.buttonRow}>
+          <TouchableOpacity style={RootForm.circleButton} onPress={() => navigation.navigate('EditSchedule')}>
+            <Ionicons name="add" size={24} color="white" />
+          </TouchableOpacity>
+          <TouchableOpacity style={RootForm.circleButton} onPress={handleLogout}>
+            {/* 빈 원 */}
+          </TouchableOpacity>
+        </View>
+        <View style={RootForm.middleButtonRow}>
+          <TouchableOpacity style={RootForm.squareButton}>
+            <Text style={RootForm.buttonText}>3</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={RootForm.squareButton}>
+            <Text style={RootForm.buttonText}>월</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={RootForm.squareButton}>
+            <Text style={RootForm.buttonText}>7</Text>
+          </TouchableOpacity>
+        </View>
       </View>
     </View>
   );

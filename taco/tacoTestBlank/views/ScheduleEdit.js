@@ -4,7 +4,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage'; // AsyncSt
 import { PanGestureHandler } from 'react-native-gesture-handler';
 import Animated, { useSharedValue, useAnimatedStyle, withSpring } from 'react-native-reanimated';
 import { logInStyle, SearchModal, ScheduleForm, RootForm, ScheduleEditForm} from '../styleSheets/styles';
-
+import { Ionicons } from '@expo/vector-icons'; // 아이콘 사용을 위한 라이브러리
 
 export default function ScheduleEdit({ navigation }) {
     return (
