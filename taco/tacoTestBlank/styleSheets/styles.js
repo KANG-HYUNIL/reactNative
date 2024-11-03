@@ -217,7 +217,6 @@ const RootForm = StyleSheet.create({
 });
 
 const ScheduleEditForm = StyleSheet.create({
-
   container: {
     flex: 1,
     paddingTop: 50,
@@ -239,6 +238,21 @@ const ScheduleEditForm = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    paddingHorizontal: 20,
+  },
+  input: {
+    width: '100%',
+    height: 40,
+    borderWidth: 1,
+    borderColor: '#ccc',
+    borderRadius: 5,
+    paddingHorizontal: 10,
+    marginBottom: 10,
+  },
+  dateTimeContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 10,
   },
 });
 

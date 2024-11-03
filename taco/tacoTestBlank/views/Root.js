@@ -10,6 +10,7 @@ const { width } = Dimensions.get('window');
 
 export default function RootView({ navigation }) {
   const [schedules, setSchedules] = React.useState([]); // 스케줄 데이터
+  const [userId, setUserId] = React.useState(null); // 사용자 ID
 
   // 오늘 날짜 가져오기
   const today = new Date();
@@ -45,19 +46,28 @@ export default function RootView({ navigation }) {
 
   const calendarData = generateCalendar(year, month);
 
-  // AsyncStorage에서 스케줄 데이터 가져오기
+  // AsyncStorage에서 사용자 ID와 스케줄 데이터 가져오기
   React.useEffect(() => {
     const fetchData = async () => {
       try {
-        const value = await AsyncStorage.getItem('scheduleData'); // AsyncStorage에서 scheduleData 가져오기
-        if (value !== null) {
-          const data = JSON.parse(value);
-          setSchedules(data);
-        } else {
-          setSchedules([]); // 스케줄 데이터가 없을 경우 빈 배열로 설정
+        // 사용자 ID 가져오기
+        const userData = await AsyncStorage.getItem('userData');
+        if (userData !== null) {
+          const user = JSON.parse(userData);
+          setUserId(user.id);
+
+          // 사용자 ID를 기반으로 스케줄 데이터 가져오기
+          const scheduleData = await AsyncStorage.getItem(userId);
+          if (scheduleData !== null) {
+            const data = JSON.parse(scheduleData);
+            setSchedules(data.scheduleData || []); //
+          } else {
+            setSchedules([]); // 스케줄 데이터가 없을 경우 빈 배열로 설정
+          }
         }
       } catch (error) {
         console.error("Error fetching schedule data: ", error);
+        setSchedules([]); // 에러 발생 시 빈 배열로 설정
       }
     };
 
