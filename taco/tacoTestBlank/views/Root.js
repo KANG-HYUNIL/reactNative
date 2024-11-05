@@ -1,162 +1,57 @@
 import * as React from 'react';
-import { View, Text, StyleSheet, Button, ScrollView, Dimensions, TouchableOpacity } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage'; // AsyncStorage import
-import { PanGestureHandler } from 'react-native-gesture-handler';
-import Animated, { useSharedValue, useAnimatedStyle, withSpring } from 'react-native-reanimated';
-import { Ionicons } from '@expo/vector-icons'; // 아이콘 사용을 위한 라이브러리
+import { View, TouchableOpacity, Text, TextInput } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Ionicons } from '@expo/vector-icons';
 import { logInStyle, SearchModal, ScheduleForm, RootForm } from '../styleSheets/styles';
-
-const { width } = Dimensions.get('window');
+import CalendarView from './CalendarView';
 
 export default function RootView({ navigation }) {
-  const [schedules, setSchedules] = React.useState([]); // 스케줄 데이터
-  const [userId, setUserId] = React.useState(null); // 사용자 ID
+  const [schedules, setSchedules] = React.useState([]);
+  const [userId, setUserId] = React.useState(null);
+  const [isOverlayVisible, setIsOverlayVisible] = React.useState(false);
 
-  // 오늘 날짜 가져오기
-  const today = new Date();
-  const year = today.getFullYear();
-  const month = today.getMonth();
-
-  // 달력 데이터 생성
-  const generateCalendar = (year, month) => {
-    const firstDayOfMonth = new Date(year, month, 1);
-    const lastDayOfMonth = new Date(year, month + 1, 0);
-    const calendar = [];
-
-    // 첫 번째 주의 빈 칸 채우기
-    for (let i = 0; i < firstDayOfMonth.getDay(); i++) {
-      calendar.push(null);
-    }
-
-    // 해당 월의 날짜 채우기
-    for (let day = 1; day <= lastDayOfMonth.getDate(); day++) {
-      calendar.push(new Date(year, month, day));
-    }
-
-    // 마지막 주의 빈 칸 채우기
-    const remainingDays = 7 - (calendar.length % 7);
-    if (remainingDays < 7) {
-      for (let i = 0; i < remainingDays; i++) {
-        calendar.push(null);
-      }
-    }
-
-    return calendar;
-  };
-
-  const calendarData = generateCalendar(year, month);
-
-  // AsyncStorage에서 사용자 ID와 스케줄 데이터 가져오기
+  // 로그인된 사용자의 데이터 가져오기
   React.useEffect(() => {
     const fetchData = async () => {
       try {
-        // 사용자 ID 가져오기
         const userData = await AsyncStorage.getItem('userData');
         if (userData !== null) {
           const user = JSON.parse(userData);
           setUserId(user.id);
 
-          // 사용자 ID를 기반으로 스케줄 데이터 가져오기
-          const scheduleData = await AsyncStorage.getItem(userId);
+          const scheduleData = await AsyncStorage.getItem(user.id);
           if (scheduleData !== null) {
             const data = JSON.parse(scheduleData);
-            setSchedules(data.scheduleData || []); //
+            setSchedules(data.scheduleData || []); // 스케줄은 scheduleData라는 key로 저장
           } else {
-            setSchedules([]); // 스케줄 데이터가 없을 경우 빈 배열로 설정
+            setSchedules([]);
           }
         }
       } catch (error) {
         console.error("Error fetching schedule data: ", error);
-        setSchedules([]); // 에러 발생 시 빈 배열로 설정
+        setSchedules([]);
       }
     };
 
     fetchData();
-  }, []); //useEffect
+  }, []); // useEffect
 
-  // 스케줄 필터링
-  const filterSchedulesForMonth = (schedules, year, month) => {
-    return schedules.filter(schedule => {
-      const startDate = schedule.startDate ? new Date(schedule.startDate) : null;
-      const endDate = schedule.endDate ? new Date(schedule.endDate) : null;
-
-      if (startDate && startDate.getFullYear() === year && startDate.getMonth() === month) {
-        return true;
-      }
-
-      if (endDate && endDate.getFullYear() === year && endDate.getMonth() === month) {
-        return true;
-      }
-
-      return false;
-    });
-  };
-
-  const filteredSchedules = filterSchedulesForMonth(schedules, year, month);
-
-  // 로그아웃 처리
+  // 로그아웃
   const handleLogout = async () => {
     try {
-      await AsyncStorage.removeItem('userData'); // userData 삭제
-      //await SecureStore.deleteItemAsync('userData'); //암호화된 userData 삭제
-      navigation.navigate('Home'); // Home 뷰로 이동
+      await AsyncStorage.removeItem('userData');
+      navigation.navigate('Home');
     } catch (error) {
       alert("Logout error: " + error);
     }
-  }; //handleLogout
+  }; // handleLogout
 
-  // 달력 렌더링
-  const renderCalendar = (calendarData, filteredSchedules) => {
-    if (!calendarData) {
-      return null; // calendarData가 undefined일 경우 null 반환
-    }
+  // 민기 민기 버튼 처리
+  const handleOverlayToggle = () => {
+    setIsOverlayVisible(!isOverlayVisible);
+  }; // handleOverlayToggle
 
-    const scheduleMap = {};
-
-    filteredSchedules.forEach(schedule => {
-      const startDate = schedule.startDate ? new Date(schedule.startDate) : null;
-      const endDate = schedule.endDate ? new Date(schedule.endDate) : null;
-
-      if (startDate) {
-        const key = startDate.toISOString().split('T')[0];
-        if (!scheduleMap[key]) {
-          scheduleMap[key] = [];
-        }
-        scheduleMap[key].push(schedule);
-      } else if (endDate) {
-        const key = endDate.toISOString().split('T')[0];
-        if (!scheduleMap[key]) {
-          scheduleMap[key] = [];
-        }
-        scheduleMap[key].push(schedule);
-      }
-    });
-
-    return (
-      <View style={RootForm.calendarContainer}>
-        {calendarData.map((date, index) => {
-          const key = date ? date.toISOString().split('T')[0] : null;
-          const schedulesForDate = key ? scheduleMap[key] || [] : [];
-
-          return (
-            <View key={index} style={RootForm.calendarCell}>
-              {date && (
-                <>
-                  <Text style={RootForm.calendarText}>{date.getDate()}</Text>
-                  <View style={RootForm.separator} />
-                  {schedulesForDate.map((schedule, idx) => (
-                    <Text key={idx} style={RootForm.scheduleText}>- {schedule.title}</Text>
-                  ))}
-                </>
-              )}
-            </View>
-          );
-        })}
-      </View>
-    );
-  };
-
-  // 뷰 렌더링
+  // 렌더링 코드
   return (
     <View style={ScheduleForm.container}>
       <View style={RootForm.header}>
@@ -167,14 +62,14 @@ export default function RootView({ navigation }) {
           <Ionicons name="settings" size={24} color="black" />
         </TouchableOpacity>
       </View>
-      {renderCalendar(calendarData, filteredSchedules)}
+      <CalendarView schedules={schedules} />
       <View style={RootForm.bottomContainer}>
         <View style={RootForm.buttonRow}>
           <TouchableOpacity style={RootForm.circleButton} onPress={() => navigation.navigate('EditSchedule')}>
             <Ionicons name="add" size={24} color="white" />
           </TouchableOpacity>
-          <TouchableOpacity style={RootForm.circleButton} onPress={handleLogout}>
-            {/* 빈 원 */}
+          <TouchableOpacity style={RootForm.circleButton} onPress={handleOverlayToggle}>
+            {/* 민기 민기 */}
           </TouchableOpacity>
         </View>
         <View style={RootForm.middleButtonRow}>
@@ -189,6 +84,31 @@ export default function RootView({ navigation }) {
           </TouchableOpacity>
         </View>
       </View>
+      {isOverlayVisible && (
+        <View style={RootForm.overlay} pointerEvents="box-none">
+          <View style={RootForm.overlayHeader}>
+            <TouchableOpacity onPress={handleOverlayToggle}>
+              <Ionicons name="close" size={24} color="black" />
+            </TouchableOpacity>
+            <TouchableOpacity onPress={() => { /* 메뉴 아이콘 클릭 시 동작할 로직 */ }}>
+              <Ionicons name="menu" size={24} color="black" />
+            </TouchableOpacity>
+          </View>
+          <View style={RootForm.chatContainer}>
+            <Text style={RootForm.chatText}>채팅 기록이 없습니다.</Text>
+          </View>
+          <View style={RootForm.inputContainer}>
+            <TextInput style={RootForm.textInput} placeholder="메세지를 입력하세요" />
+            <TouchableOpacity style={RootForm.iconButton}>
+              <Ionicons name="add" size={24} color="black" />
+            </TouchableOpacity>
+            <TouchableOpacity style={RootForm.iconButton}>
+              <Ionicons name="send" size={24} color="black" />
+            </TouchableOpacity>
+          </View>
+          <View style={RootForm.overlayTouchable} pointerEvents="auto" />
+        </View>
+      )}
     </View>
   );
 }
