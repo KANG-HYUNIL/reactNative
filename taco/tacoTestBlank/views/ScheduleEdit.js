@@ -4,8 +4,8 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
 import { ScheduleEditForm } from '../styleSheets/styles';
 import { v4 as uuidv4 } from 'uuid';
-import TextInputField from './TextInputField';
-import DateTimePickerField from './DateTimePickerField';
+import TextInputField from '../components/ScheduleFormInput';
+import DateTimePickerField from '../components/DateTimePickerField';
 
 export default function ScheduleEdit({ navigation }) {
   const [title, setTitle] = React.useState('');

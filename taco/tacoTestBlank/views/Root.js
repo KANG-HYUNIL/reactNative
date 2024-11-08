@@ -86,6 +86,7 @@ export default function RootView({ navigation }) {
       </View>
       {isOverlayVisible && (
         <View style={RootForm.overlay} pointerEvents="box-none">
+          <View style={RootForm.overlayTouchable} pointerEvents="auto" />
           <View style={RootForm.overlayHeader}>
             <TouchableOpacity onPress={handleOverlayToggle}>
               <Ionicons name="close" size={24} color="black" />
@@ -106,7 +107,7 @@ export default function RootView({ navigation }) {
               <Ionicons name="send" size={24} color="black" />
             </TouchableOpacity>
           </View>
-          <View style={RootForm.overlayTouchable} pointerEvents="auto" />
+          
         </View>
       )}
     </View>
