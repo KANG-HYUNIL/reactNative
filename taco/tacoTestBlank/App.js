@@ -43,6 +43,8 @@ function HomeScreen({ navigation }) {
     }; //checkNetworkStatus
 
     checkNetworkStatus(); //네트워크 상태 확인
+
+    setIsReady(true); // 네트워크 연결 상태 안되도 일단 true 로 설정 하게 코드 작성
   }, []);
 
   
@@ -86,7 +88,12 @@ function HomeScreen({ navigation }) {
         navigation.navigate('Root')
       }
       else {
-        alert("Login failed" + jsonData.msg);
+        // alert("Login failed" + jsonData.msg);
+        //임시로 id와 pw "admin 사용 시에" 로그인 성공
+        if (req.id === "admin" && req.pw === "admin")
+        {
+          navigation.navigate('Root')
+        }
       }
 
     }
