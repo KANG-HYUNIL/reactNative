@@ -4,30 +4,36 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
 import { logInStyle, SearchModal, ScheduleForm, RootForm } from '../styleSheets/styles';
 import CalendarView from './CalendarView';
+import * as Fs from "../utils/fileSystem"; // 파일 시스템 모듈 불러오기
+
 
 export default function RootView({ navigation }) {
   const [schedules, setSchedules] = React.useState([]);
   const [userId, setUserId] = React.useState(null);
   const [isOverlayVisible, setIsOverlayVisible] = React.useState(false);
 
+
+
   // 로그인된 사용자의 데이터 가져오기
   React.useEffect(() => {
     const fetchData = async () => {
       try {
-        const userData = await AsyncStorage.getItem('userData');
+        const userData = await AsyncStorage.getItem('userData'); // 로그인 정보 가져오기
         if (userData !== null) {
           const user = JSON.parse(userData);
           setUserId(user.id);
-
-          const scheduleData = await AsyncStorage.getItem(user.id);
-          if (scheduleData !== null) {
+ 
+          const scheduleData = await Fs.readJsonFile(userId, 'schedule.json'); // 스케줄 데이터 가져오기
+          if (scheduleData !== false) {
             const data = JSON.parse(scheduleData);
             setSchedules(data.scheduleData || []); // 스케줄은 scheduleData라는 key로 저장
           } else {
             setSchedules([]);
           }
         }
-      } catch (error) {
+      } 
+      catch (error) 
+      {
         console.error("Error fetching schedule data: ", error);
         setSchedules([]);
       }

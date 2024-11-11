@@ -6,6 +6,7 @@ import { ScheduleEditForm } from '../styleSheets/styles';
 import { v4 as uuidv4 } from 'uuid';
 import TextInputField from '../components/ScheduleFormInput';
 import DateTimePickerField from '../components/DateTimePickerField';
+import * as Fs from '../utils/fileSystem';
 
 export default function ScheduleEdit({ navigation }) {
   const [title, setTitle] = React.useState('');
@@ -79,19 +80,22 @@ export default function ScheduleEdit({ navigation }) {
     const updatedSchedules = [...schedules, newSchedule];
     setSchedules(updatedSchedules);
 
-    //asyncStorage에 저장 시도 코드
     //이 아래에 서버와의 통신 및 데이터 저장 요청 코드 추가 필요
-    try {
+    try 
+    {
       const userData = await AsyncStorage.getItem('userData');
-      if (userData !== null) {
-        const scheduleData = await AsyncStorage.getItem(userId);
-        const data = scheduleData ? JSON.parse(scheduleData) : { scheduleData: [] };
-        data.scheduleData.push(newSchedule);
-        await AsyncStorage.setItem(userId, JSON.stringify(data));
+      if (userData !== null) 
+      {
+        const scheduleData = { scheduleData: updatedSchedules };
+        await Fs.createJsonFile(userId, 'schedules.json', scheduleData);
+
+        //스케줄 추가 완료 메시지 표시
         alert("스케줄이 추가되었습니다.");
         navigation.navigate('Root');
       }
-    } catch (error) {
+    } 
+    catch (error)
+    {
       console.error("Error saving schedule data: ", error);
     }
   }; //handleSubmit, 제출 버튼 메서드

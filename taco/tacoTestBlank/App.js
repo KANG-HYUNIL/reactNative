@@ -12,6 +12,7 @@ import IdPwSearchScreen from "./views/IdPwSearch"; // ID/PW Search 뷰 import
 import ScheduleEdit from './views/ScheduleEdit';
 import {logInStyle} from './styleSheets/styles';
 import ErrorBoundary from './ErrorBoundary';
+import * as Fs from './utils/fileSystem';
 
 //stack navigator 생성
 const Stack = createStackNavigator();
@@ -72,6 +73,16 @@ function HomeScreen({ navigation }) {
     } //요청 body
 
     try{
+
+      //임시로 id와 pw "admin 사용 시에" 로그인 성공
+      if (req.id === "admin" && req.pw === "admin")
+      {
+          navigation.navigate('Root')
+          //사용자 id를 폴더 명으로 사용하여 폴더 생성
+          await Fs.createFolder(req.id);
+          return;
+      }
+
       const response = await fetch(url, {
         method: "POST", //rest api 요청
         headers : { //보낼 데이터에 대한 정보
@@ -86,16 +97,12 @@ function HomeScreen({ navigation }) {
         await AsyncStorage.setItem('userData', JSON.stringify(req)); // 로그인 성공 시 userData 저장
         // await SecureStore.setItemAsync("userData", JSON.stringify(req)); // 로그인 성공 시 userData 저장 (모바일용)
         navigation.navigate('Root')
+        //사용자 id를 폴더 명으로 사용하여 폴더 생성
+        await Fs.createFolder(req.id);
       }
       else {
-        // alert("Login failed" + jsonData.msg);
-        //임시로 id와 pw "admin 사용 시에" 로그인 성공
-        if (req.id === "admin" && req.pw === "admin")
-        {
-          navigation.navigate('Root')
-        }
+        alert("Login failed" + jsonData.msg);
       }
-
     }
     catch(error){
       alert("Login error" + error);

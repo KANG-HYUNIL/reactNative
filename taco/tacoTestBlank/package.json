@@ -26,6 +26,7 @@
     "react-datepicker": "^7.5.0",
     "react-dom": "^18.2.0",
     "react-native": "0.74.5",
+    "react-native-fs": "^2.20.0",
     "react-native-gesture-handler": "^2.20.0",
     "react-native-keyboard-aware-scroll-view": "^0.9.5",
     "react-native-paper": "^5.12.5",

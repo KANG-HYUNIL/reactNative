@@ -312,6 +312,65 @@ const ScheduleEditForm = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 10,
   },
+
+  //이 아래는 달력의 일자 클릭 시 나오는 스케줄 팝업 창의 스타일 코드들
+  modalContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  },
+  modalContent: {
+    width: wp(80),
+    height: hp(60),
+    padding: 20,
+    backgroundColor: 'white',
+    borderRadius: 10,
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 10,
+  },
+  closeButton: {
+    position: 'absolute',
+    top: 10,
+    right: 10,
+    zIndex: 1,
+  },
+  closeButtonText: {
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
+  scheduleItem: {
+    marginBottom: 15,
+    padding: 10,
+    backgroundColor: '#f9f9f9',
+    borderRadius: 5,
+    borderWidth: 1,
+    borderColor: '#ddd',
+  },
+  scheduleTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  scheduleTag: {
+    fontSize: 14,
+    color: 'gray',
+  },
+  scheduleDate: {
+    fontSize: 14,
+    color: 'gray',
+  },
+  scheduleNote: {
+    fontSize: 14,
+    color: 'gray',
+  },
+  gearIcon: {
+    position: 'absolute',
+    top: 10,
+    left: 10,
+  },
 });
 
 export { logInStyle, SearchModal, ScheduleForm, RootForm, ScheduleEditForm };
